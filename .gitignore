@@ -1,0 +1,24 @@
+# See https://github.com/github/gitignore/blob/main/Next.js.gitignore
+
+# Next.js
+.next/
+out/
+node_modules/
+.env.local
+.env
+
+# Replit
+.replit
+.replignore
+
+# Logs
+*.log
+build.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
