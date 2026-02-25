@@ -1,66 +1,50 @@
-'use client';
+"use client";
 
- import { createConfig, http } from 'wagmi';
- import { base } from 'wagmi/chains';
- import { createPublicClient, createWalletClient, custom } from 'viem';
- import { metaMask } from 'wagmi/connectors';
+import { useState } from 'react';
+import { TransactionButton } from 'thirdweb/react';
+import { useActiveAccount } from '@thirdweb-dev/react';
+import { useSendUserOperation } from 'thirdweb/react';
+import { wagmi } from 'wagmi';
+import { base } from 'wagmi/chains';
 
- // Base Mainnet Config (8453) — VIEM + WAGMI for EOA
- export const config = createConfig({                                                                                                                                                                                                            
-   chains: [base],                                                                                                                                                                                                                               
-   transports: {                                                                                                                                                                                                                                 
-     [base.id]: http(process.env.BASE_RPC_URL || 'https://mainnet.base.org'),                                                                                                                                                                                               
-   },                                                                                                                                                                                                                                            
-   connectors: [metaMask()],                                                                                                                                                                                                                     
- });                                                                                                                                                                                                                                             
+const contractAddress = '0x65d7245Ab1F2382a6F9fb0e1f14be8cdf1Bb4A69'; // Base mainnet contract
+const contractABI = [ /* ABI for mintTo function: mintTo(address to, string uri, string value, bytes signature, uint256 timestamp) returns (uint256) */ {
+  "inputs": [
+    {"name": "to", "type": "address"},
+    {"name": "uri", "type": "string"},
+    {"name": "value", "type": "string"},
+    {"name": "signature", "type": "bytes"},
+    {"name": "timestamp", "type": "uint256"}
+  ],
+  "name": "mintTo",
+  "outputs": [{"name": "", "type": "uint256"}],
+  "stateMutability": "nonpayable",
+  "type": "function"
+} ];
+const paymasterConfig = {
+  policyId: process.env.NEXT_PUBLIC_PAYMASTER_POLICY_ID || '', // Set in .env or Thirdweb dashboard
+};
 
- export const publicClient = createPublicClient({                                                                                                                                                                                                
-   chain: base,                                                                                                                                                                                                                                  
-   transport: http(process.env.BASE_RPC_URL || 'https://mainnet.base.org'),                                                                                                                                                                                                 
- });                                                                                                                                                                                                                                             
+async function getWalletBalance(address) {
+  // Placeholder: Use viem/publicClient to fetch balance on Base 8453
+  const { createPublicClient, http } = await import('viem');
+  const publicClient = createPublicClient({
+    chain: base,
+    transport: http(),
+  });
+  const balance = await publicClient.getBalance({ address });
+  return Number(balance) / 1e18; // ETH
+}
 
- export const walletClient = createWalletClient({                                                                                                                                                                                                
-   chain: base,                                                                                                                                                                                                                                  
-   transport: custom(window.ethereum), // MetaMask                                                                                                                                                                                               
- });                                                                                                                                                                                                                                             
+async function estimateGas(params) {
+  // Placeholder: Use publicClient.estimateGas for mintTo
+  const { createPublicClient, http } = await import('viem');
+  const publicClient = createPublicClient({
+    chain: base,
+    transport: http(),
+  });
+  // Simulate estimateGas call
+  return 200000n; // Estimated
+}
 
- // Contract                                                                                                                                                                                                                                     
- export const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0x65d7245Ab1F2382a6F9fb0e1f14be8cdf1Bb4A69'; // Mainnet LIVE                                                                                                                                                   
-
- // ABI for mintTo (adjust to your contract's ABI)
- export const contractABI = [                                                                                                                                                                                                                    
-   {                                                                                                                                                                                                                                             
-     "inputs": [                                                                                                                                                                                                                                 
-       {"name": "to", "type": "address"},                                                                                                                                                                                                        
-       {"name": "uri", "type": "string"},                                                                                                                                                                                                        
-       {"name": "value", "type": "string"},                                                                                                                                                                                                      
-       {"name": "signature", "type": "bytes"},                                                                                                                                                                                                   
-       {"name": "timestamp", "type": "uint256"}                                                                                                                                                                                                  
-     ],                                                                                                                                                                                                                                          
-     "name": "mintTo",                                                                                                                                                                                                                           
-     "outputs": [],                                                                                                                                                                                                                              
-     "stateMutability": "nonpayable",                                                                                                                                                                                                            
-     "type": "function"                                                                                                                                                                                                                          
-   }                                                                                                                                                                                                                                             
- ] as const;                                                                                                                                                                                                                                     
-
- export const paymasterConfig = {                                                                                                                                                                                                               
-   policyId: process.env.NEXT_PUBLIC_PAYMASTER_POLICY_ID || '', // Optional; fallback to EOA if empty                                                                                                                                                                                                 
- };                                                                                                                                                                                                                                             
-
- export const getWalletBalance = async (address: `0x${string}`) => {                                                                                                                                                                                                        
-   if (!address) return 0n;                                                                                                                                                                                                                     
-   const balance = await publicClient.getBalance({ address });                                                                                                                                                                                  
-   return balance;                                                                                                                                                                                                                               
- };                                                                                                                                                                                                                                              
-
- export const estimateGas = async (params: any) => {                                                                                                                                                                                             
-   // Simulate for gas                                                                                                                                                                                                                           
-   const { request } = await publicClient.simulateContract({                                                                                                                                                                                    
-     ...params,                                                                                                                                                                                                                                  
-     account: params.account || '0x' + '0'.repeat(40),                                                                                                                                                                                          
-   });                                                                                                                                                                                                                                          
-   return request.gas as bigint;                                                                                                                                                                                                                 
- };                                                                                                                                                                                                                                              
-
- console.log('[BASE MAINNET VIEM] Config loaded for chain 8453, contract', contractAddress);
+export { contractAddress, contractABI, paymasterConfig, getWalletBalance, estimateGas };
